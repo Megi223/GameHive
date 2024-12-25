@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema({
     ],
     profilePicture: {
         type: String,
-        default: 'URL', 
+        default: 'https://res.cloudinary.com/dhsnrnzzt/image/upload/v1735133860/avatar-2_pipnta.jpg', 
         validate: {
           validator: function (url) {
             return /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg))$/i.test(url);
