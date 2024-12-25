@@ -1,4 +1,7 @@
 const express = require('express')
+const mongoose = require('mongoose')
+const User = require("./data/User")
+mongoose.connect("mongodb://localhost:27017/GameHive").catch(error => console.log(error))
 const app = express()
 
 app.use(express.static('public'))
