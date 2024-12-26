@@ -1,13 +1,23 @@
-const express = require('express')
-const mongoose = require('mongoose')
-const User = require("./data/User")
-
+const express = require('express');
+const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const User = require("./data/User");
+const authRouter = require('./routes/auth');
 const cloudinary = require('cloudinary').v2;
 const cloudinaryConfig = require('./config/cloudinaryConfig');
 const dbConfig = require('./config/dbConfig');
+const { redisConnect, redisClient } = require('./redisConnection');
+const { authenticateToken } = require('./middlewares/authenticationMiddleware');
+const { globalMiddleware } = require('./middlewares/globalMiddleware');
 
-mongoose.connect(dbConfig.connectionString).catch(error => console.log(error))
-const app = express()
+// Redis initialization
+redisConnect();
+
+// MongoDB connection
+mongoose.connect(dbConfig.connectionString).catch(error => console.log(error));
+
+const app = express();
+
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: cloudinaryConfig.cloudName,
@@ -15,22 +25,26 @@ cloudinary.config({
   api_secret: cloudinaryConfig.apiSecret,
 });
 
+// Middleware
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cookieParser());
+app.set('view engine', 'ejs');
 
-app.use(express.static('public'))
-// allows access information coming from forms / body of the request
-app.use(express.urlencoded({extended:true}))
+app.use(authenticateToken); 
+app.use(globalMiddleware); 
 
-app.set('view engine', 'ejs')
+// Routes
+app.get('/', (req, res) => {
+  res.render('index.ejs', { title: 'Welcome', user: { name: 'Alice' }, items: ['Item 1', 'Item 2'] });
+});
 
-app.get('/', (req,res) => {
-    console.log('Here')
-    res.render('index.ejs', { title: 'Welcome', user: { name: 'Alice' }, items: ['Item 1', 'Item 2'] });
-})
+app.use('/auth', authRouter);
 
-const authRouter = require('./routes/auth')
+// Start the server
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
+});
 
-app.use('/auth', authRouter)
-
-module.exports = cloudinary;
-
-app.listen(3000)
+module.exports = { cloudinary };
