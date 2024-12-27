@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
           ref: 'User', 
         },
     ],
+    pendingRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     profilePicture: {
         type: String,
         default: 'https://res.cloudinary.com/dhsnrnzzt/image/upload/v1735133860/avatar-2_pipnta.jpg', 

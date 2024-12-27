@@ -11,6 +11,13 @@ const dbConfig = require('./config/dbConfig');
 const { redisConnect, redisClient } = require('./redisConnection');
 const { authenticateToken } = require('./middlewares/authenticationMiddleware');
 const { globalMiddleware } = require('./middlewares/globalMiddleware');
+const io = require('socket.io')(8080, {
+  cors: {
+    origin: ['http://localhost:3000', 'https://admin.socket.io'],
+    credentials: true, 
+  }
+})
+const { instrument } = require('@socket.io/admin-ui')
 
 // Redis initialization
 redisConnect();
@@ -19,6 +26,23 @@ redisConnect();
 mongoose.connect(dbConfig.connectionString).catch(error => console.log(error));
 
 const app = express();
+
+app.set('io', io);
+
+// Configure sockets
+io.on('connection', async (socket) => {
+  console.log("request for connection retrieved")
+  const id = socket.handshake.auth.userID;
+  console.log(socket.handshake.auth)
+  console.log("Server.js " + socket.id)
+  await redisClient.set(`socketID:${id}`, socket.id, { EX: 24 * 60 * 60 });
+  socket.on('disconnect', async (reason) => {
+    await redisClient.del(`socketID:${id}`);
+    console.log('Disconnected:', socket.id, 'Reason:', reason);
+  });
+})
+
+instrument(io, {auth: false})
 
 // Configure Cloudinary
 cloudinary.config({
@@ -50,5 +74,7 @@ app.use('/users', usersRouter);
 app.listen(3000, () => {
   console.log('Server running on port 3000');
 });
+
+
 
 module.exports = { cloudinary };

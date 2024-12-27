@@ -27,14 +27,24 @@ router.route('/add').post(async (req, res) => {
       if (!friend) {
         return res.status(404).json({ message: 'No user with this friend ID' });
       }
-  
-      // Add friend to the user's friend list if not already added
-      if (!user.friends.includes(friendId)) {
-        user.friends.push(friendId);
-        await user.save();
-        res.status(200).json({ message: 'Friend added successfully.' });
-      } else {
+      if(user.friends.includes(friendId)){
         res.status(400).json({ message: 'User is already your friend.' });
+      }
+      // Add friend to the user's friend list if not already added
+      if (!user.pendingRequests.includes(friendId)) {
+        user.pendingRequests.push(friendId);
+        await user.save();
+        const notification = new Notification({
+            sender: userID,
+            recepient: friendId,
+            message: `${user.name} sent you a friend request`,
+          });
+          await notification.save();
+      
+          
+        res.status(200).json({ message: 'Friend request sent successfully.' });
+      } else {
+        res.status(400).json({ message: 'Friend request has already been sent to this user' });
       }
     } catch (error) {
       console.error(error);

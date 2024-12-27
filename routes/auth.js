@@ -25,7 +25,7 @@ router.route('/login')
         res.cookie('access_token', accessToken, { httpOnly: true, secure: true, sameSite: 'strict' });
         res.cookie('refresh_token', refreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });
         res.cookie('user_id', user.id, { httpOnly: true, secure: true, sameSite: 'strict' });
-        res.json({ accessToken: accessToken, refreshToken: refreshToken })
+        res.redirect("/users/my-profile")
       }
       catch(err){
         console.error(err);
