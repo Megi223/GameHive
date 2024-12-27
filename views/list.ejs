@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="container mt-3">
+      <div id="alert-banner" class="alert d-none position-relative p-3" role="alert">
+        <span id="alert-message"></span>
+        <div
+          id="alert-progress"
+          class="progress-bar position-absolute bottom-0 start-0 end-0"
+          style="height: 4px; background-color: #dc3545; transition: width 0.5s linear;"
+        ></div>
+      </div>
+    </div>
+    <h1>Your Friends</h1>
+    <div class="row">
+      <% friends.forEach(friend => { %>
+        <div class="col-12 mb-3">
+          <div class="card p-2">
+            <div class="d-flex align-items-center">
+              <img
+                src="<%= friend.profilePicture %>"
+                alt="Profile Picture"
+                class="rounded-circle"
+                style="width: 50px; height: 50px; object-fit: cover; margin-right: 15px;"
+              />
+              <span class="flex-grow-1"><%= friend.name %></span>
+              <div>
+                <button
+                  class="btn btn-primary btn-sm me-2 play-btn"
+                  data-id="<%= friend._id %>"
+                >
+                  Play
+                </button>
+                <button
+                  class="btn btn-danger btn-sm remove-btn"
+                  data-id="<%= friend._id %>"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  function showAlert(message, type, duration = 3000) {
+    const banner = document.getElementById('alert-banner');
+    const messageSpan = document.getElementById('alert-message');
+    const progressBar = document.getElementById('alert-progress');
+
+    banner.className = `alert alert-${type} position-relative`;
+    messageSpan.textContent = message;
+    banner.classList.remove('d-none');
+
+    progressBar.style.transition = `width ${duration}ms linear`;
+    progressBar.style.width = '100%';
+
+    setTimeout(() => {
+      progressBar.style.width = '0%';
+    }, 10);
+
+    setTimeout(() => {
+      banner.classList.add('d-none');
+      progressBar.style.width = '100%'; 
+    }, duration);
+  }
+
+  document.querySelectorAll('.remove-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const friendId = e.target.getAttribute('data-id');
+        const response = await fetch('/friends/remove', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ friendId }),
+        });
+
+        const data = await response.json();
+        showAlert(data.message, "danger");
+        if (data.message === 'Friend removed successfully.') {
+          e.target.closest('.card').remove();  
+        }
+      });
+    });
+  </script>
+</body>
+</html>

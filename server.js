@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const User = require("./data/User");
 const authRouter = require('./routes/auth');
+const friendsRouter = require('./routes/friends');
 const cloudinary = require('cloudinary').v2;
 const cloudinaryConfig = require('./config/cloudinaryConfig');
 const dbConfig = require('./config/dbConfig');
@@ -41,6 +42,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/auth', authRouter);
+app.use('/friends', friendsRouter);
 
 // Start the server
 app.listen(3000, () => {
