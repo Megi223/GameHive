@@ -68,4 +68,29 @@ router.route('/add').post(async (req, res) => {
     }
   });
   
+
+    // Search for a friend by username or email
+  router.route('/search').get(async (req, res) => {
+    const { searchTerm } = req.query;
+  
+    if (!searchTerm) {
+      return res.status(400).json({ message: 'Search term is required.' });
+    }
+  
+    try {
+      // Search for users by username or email
+      const userID = req.cookies?.user_id;
+      const users = await User.find({
+        name: { $regex: `^${searchTerm}`, $options: 'i' }, // Match names starting with the searchTerm
+        _id: { $ne: userID }, // Exclude the current user's ID
+      })
+        .select('_id name email profilePicture')
+        .limit(5);
+      res.status(200).json(users);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
 module.exports = router;
