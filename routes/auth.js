@@ -39,9 +39,9 @@ router.route('/register').get((req,res)=>{
     res.render("register.ejs")
 }).post(async (req,res)=>{
 
-    const {email,password,name} = req.body
+    const {email,password,name, profilePicture} = req.body
     try {
-        const user = new User({ email, password, name });
+        const user = new User({ email, password, name, profilePicture });
         await user.save();
 
         res.status(201).json({ message: 'User registered successfully' });
