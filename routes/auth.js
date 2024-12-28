@@ -90,9 +90,7 @@ router.post('/token', async (req, res) => {
 });
 
 router.route('/logout')
-    .get((req,res)=>{
-        res.render("logout.ejs")
-}).post(async (req, res) => {
+    .post(async (req, res) => {
   const userID = req.cookies?.user_id;
   const user = await User.findById(userID);
   res.clearCookie("access_token");
