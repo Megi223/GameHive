@@ -1,5 +1,7 @@
 
 const globalMiddleware = (req, res, next) => {
+    const isAuthenticated = req.cookies?.user_id ? true : false;
+    res.locals.isAuthenticated = isAuthenticated;
     if (!req.user) {
         return next();
     }
