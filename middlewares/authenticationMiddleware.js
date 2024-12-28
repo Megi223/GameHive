@@ -5,7 +5,7 @@ const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 const authenticateToken = (req, res, next) => {
     const token = req.cookies?.access_token; 
-    
+    console.log("in authentication middleware")
     if (!token) {
       next()
       return;
@@ -40,6 +40,8 @@ const authenticateToken = (req, res, next) => {
         else{
           req.user = user;
         }
+        console.log("==USER==")
+        console.log(req.user)
         next();
     });
 };

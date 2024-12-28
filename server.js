@@ -5,12 +5,15 @@ const User = require("./data/User");
 const authRouter = require('./routes/auth');
 const friendsRouter = require('./routes/friends');
 const usersRouter = require('./routes/users');
+const notificationsRouter = require('./routes/notifications');
 const cloudinary = require('cloudinary').v2;
 const cloudinaryConfig = require('./config/cloudinaryConfig');
 const dbConfig = require('./config/dbConfig');
 const { redisConnect, redisClient } = require('./redisConnection');
 const { authenticateToken } = require('./middlewares/authenticationMiddleware');
 const { globalMiddleware } = require('./middlewares/globalMiddleware');
+const { assignNotifications } = require('./middlewares/notificationMiddleware');
+
 const io = require('socket.io')(8080, {
   cors: {
     origin: ['http://localhost:3000', 'https://admin.socket.io'],
@@ -33,9 +36,12 @@ app.set('io', io);
 io.on('connection', async (socket) => {
   console.log("request for connection retrieved")
   const id = socket.handshake.auth.userID;
-  console.log(socket.handshake.auth)
-  console.log("Server.js " + socket.id)
-  await redisClient.set(`socketID:${id}`, socket.id, { EX: 24 * 60 * 60 });
+  if(id){
+    console.log(socket.handshake.auth)
+    console.log("Server.js " + socket.id)
+    await redisClient.set(`socketID:${id}`, socket.id, { EX: 24 * 60 * 60 });
+  }
+  
   socket.on('disconnect', async (reason) => {
     await redisClient.del(`socketID:${id}`);
     console.log('Disconnected:', socket.id, 'Reason:', reason);
@@ -60,6 +66,7 @@ app.set('view engine', 'ejs');
 
 app.use(authenticateToken); 
 app.use(globalMiddleware); 
+app.use(assignNotifications);
 
 // Routes
 app.get('/', (req, res) => {
@@ -69,6 +76,7 @@ app.get('/', (req, res) => {
 app.use('/auth', authRouter);
 app.use('/friends', friendsRouter);
 app.use('/users', usersRouter);
+app.use('/notifications', notificationsRouter);
 
 // Start the server
 app.listen(3000, () => {

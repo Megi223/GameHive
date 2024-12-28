@@ -1,3 +1,11 @@
+<style>
+    #notification-count {
+      font-size: 0.75rem;
+      padding: 0.4em 0.5em;
+      color: white;
+    }
+</style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">GameHive</a>
@@ -7,6 +15,14 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto align-items-center">
           <% if (isAuthenticated) { %>
+            <li class="nav-item">
+                <a class="nav-link text-white position-relative" href="/notifications/list">
+                  <i class="bi bi-bell"></i>
+                  <span id="notification-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    <%= notificationsCount || 0 %>
+                  </span>
+                </a>
+            </li>
             <li class="nav-item">
               <a class="nav-link text-white" href="/users/my-profile">My Profile</a>
             </li>
@@ -27,4 +43,40 @@
       </div>
     </div>
   </nav>
+
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    const isAuth = `<%= isAuthenticated %>`
+    if(!window.socket && isAuth){
+        const userID = `<%= userID %>`;
+            console.log("User data:", userID);
+        
+  
+    const socket = io('http://localhost:8080', {
+        reconnection: false,
+        auth: { userID: userID }, 
+    });
+    window.socket = socket
+  
+    socket.on("connect", () => {
+      console.log("You connected with id " + `${socket.id}`);
+    });
+    
+    }
+    // on each page render- the socket id is changed
+    
+  
+    socket.on("friend-request-sent", () => {
+      let value = document.getElementById("notification-count").innerHTML
+      document.getElementById("notification-count").innerHTML = parseInt(value) + 1
+
+    });
+
+    socket.on("notification-read", () => {
+      let value = document.getElementById("notification-count").innerHTML
+      document.getElementById("notification-count").innerHTML = parseInt(value) - 1
+
+    });
+    
+  </script>
   

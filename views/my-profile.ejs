@@ -26,19 +26,5 @@
   </div>
 </body>
 
-<script>
-    // on each page render- the socket id is changed
-    const userID = `<%= user._id %>` 
-    console.log("User data:", userID);
-  
-    const socket = io('http://localhost:8080', {
-        reconnection: false,
-        auth: { userID: userID }, 
-    });
-  
-    socket.on("connect", () => {
-      console.log("You connected with id " + `${socket.id}`);
-    });
-    
-  </script>
+
 </html>

@@ -1,6 +1,8 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../data/User')
+const Notification = require('../data/Notification')
+const { redisConnect, redisClient } = require('../redisConnection');
 
 router.route('/list').get(async (req, res) => {
     try {
@@ -23,7 +25,10 @@ router.route('/add').post(async (req, res) => {
         const userID = req.cookies?.user_id;
       const user = await User.findById(userID);
       const friend = await User.findById(friendId);
-  
+      console.log("==========USER========")
+      console.log(user)
+      console.log("==========FRIEND========")
+        console.log(friend)
       if (!friend) {
         return res.status(404).json({ message: 'No user with this friend ID' });
       }
@@ -31,15 +36,26 @@ router.route('/add').post(async (req, res) => {
         res.status(400).json({ message: 'User is already your friend.' });
       }
       // Add friend to the user's friend list if not already added
-      if (!user.pendingRequests.includes(friendId)) {
-        user.pendingRequests.push(friendId);
-        await user.save();
+      if (!friend.pendingRequests.includes(userID)) {
+        friend.pendingRequests.push(userID);
+        await friend.save();
         const notification = new Notification({
             sender: userID,
             recepient: friendId,
             message: `${user.name} sent you a friend request`,
           });
           await notification.save();
+
+          const socketId = await redisClient.get(`socketID:${friendId}`);
+          console.log(socketId)
+          if (socketId) {
+            console.log("to be emitted")
+            const io = req.app.get('io');
+            io.to(socketId).emit('friend-request-sent', {
+              message: `You have a new friend request from ${user.name}`,
+              notificationID: notification._id
+            });
+          }
       
           
         res.status(200).json({ message: 'Friend request sent successfully.' });

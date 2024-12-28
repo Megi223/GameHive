@@ -7,6 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+    <%- include('./partials/navbar.ejs') %>
   <div class="container mt-5">
     <div class="card">
       <div class="card-body text-center">
@@ -20,12 +21,35 @@
         <p><%= user.email %></p>
         <button
         class="btn btn-danger btn-sm add-friend-btn"
-        data-id="<%= friend._id %>"
+        data-id="<%= user._id %>"
       >
         Add friend
       </button>
       </div>
     </div>
   </div>
+
+  <script>
+    document.querySelectorAll('.add-friend-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const friendId = e.target.getAttribute('data-id');
+        const response = await fetch('/friends/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ friendId }),
+        });
+
+        const data = await response.json();
+        
+        if (data.message === 'Friend request sent successfully.') {
+          e.target.innerHtml = 'Friend request sent'
+        }
+      });
+    });
+  </script>
+
 </body>
 </html>
+
