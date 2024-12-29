@@ -72,6 +72,12 @@
 
     });
 
+    socket.on("friend-request-accepted", () => {
+      let value = document.getElementById("notification-count").innerHTML
+      document.getElementById("notification-count").innerHTML = parseInt(value) + 1
+
+    });
+
     socket.on("notification-read", () => {
       let value = document.getElementById("notification-count").innerHTML
       document.getElementById("notification-count").innerHTML = parseInt(value) - 1

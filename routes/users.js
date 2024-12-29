@@ -21,9 +21,22 @@ router.route('/my-profile').get(async (req, res) => {
 
 router.route('/:id').get(async (req, res) => {
     const { id } = req.params;
+    const loggedInUserID = req.cookies?.user_id;
     try {
-      const user = await User.findById(id).select('name email profilePicture');
-  
+      const user = await User.findById(id).select('name email profilePicture pendingRequests');
+      const loggedInUser = await User.findById(loggedInUserID)
+      if(loggedInUser.pendingRequests.includes(id)){
+        user.relationship = 'Pending friend request'
+      }
+      else if(loggedInUser.friends.includes(id)){
+        user.relationship = 'Friends'
+      }
+      else if(user.pendingRequests.includes(loggedInUserID)){
+        user.relationship = 'Friend request sent'
+      }
+      else {
+        user.relationship = 'Add friend'
+      }
       if (!user) {
         return res.status(404).send('User not found');
       }

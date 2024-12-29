@@ -7,7 +7,7 @@ router.route('/list').get(async (req, res) => {
     try {
       const userID = req.cookies?.user_id;
       if(userID) {
-        const notifications = await Notification.find({ recepient: userID }).populate('sender', 'name profilePicture').sort({ createdAt: -1 });
+        const notifications = await Notification.find({ recepient: userID }).populate('sender', 'name profilePicture').sort({ timeSent: "desc" });
         console.log(notifications)
         res.render('list-notifications', { notifications: notifications }); 
       }

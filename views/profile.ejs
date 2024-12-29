@@ -19,20 +19,43 @@
         />
         <h2><%= user.name %></h2>
         <p><%= user.email %></p>
-        <button
-        class="btn btn-danger btn-sm add-friend-btn"
-        data-id="<%= user._id %>"
-      >
-        Add friend
-      </button>
+        <% if (user.relationship == 'Add friend') { %>
+            <button
+              class="btn btn-info btn-sm add-friend-btn user-relationship-btn"
+              data-id="<%= user._id %>"
+            >
+              <%= user.relationship %>
+            </button>
+          <% } else if (user.relationship == 'Friend request sent' || user.relationship == 'Friends') { %>
+            <button
+              class="btn btn-secondary btn-sm user-relationship-btn friends-friend-request-btn"
+              data-id="<%= user._id %>"
+            >
+              <%= user.relationship %>
+            </button>
+          <% } else if (user.relationship == 'Pending friend request') { %>
+           <span id="span-friend-request-message">Friend request has been received</span><br/> <button
+              class="btn btn-success btn-sm accept-friend-request-btn user-relationship-btn"
+              data-id="<%= user._id %>"
+            >
+              Accept
+            </button>
+            <button
+              class="btn btn-danger btn-sm reject-friend-request-btn user-relationship-btn"
+              data-id="<%= user._id %>"
+            >
+              Reject
+            </button>
+          <% } %>
+          
       </div>
     </div>
   </div>
 
   <script>
-    document.querySelectorAll('.add-friend-btn').forEach(button => {
-      button.addEventListener('click', async (e) => {
-        const friendId = e.target.getAttribute('data-id');
+    document.body.addEventListener('click', async function (e) {
+        if (e.target.classList.contains('add-friend-btn')) {
+            const friendId = e.target.getAttribute('data-id');
         const response = await fetch('/friends/add', {
           method: 'POST',
           headers: {
@@ -46,8 +69,97 @@
         if (data.message === 'Friend request sent successfully.') {
           e.target.innerHtml = 'Friend request sent'
         }
-      });
+        }
     });
+    
+    document.body.addEventListener('click', async function (e) {
+        if (e.target.classList.contains('accept-friend-request-btn')) {
+            const friendId = e.target.getAttribute('data-id');
+            console.log("Friend ID upon accept is " + friendId)
+        const response = await fetch('/friends/accept', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ friendId }),
+        });
+
+        const data = await response.json();
+        
+        if (data.message === 'Friend request accepted successfully.') {
+          e.target.innerHtml = 'Friend request sent'
+        }
+        }
+    });
+   
+
+    
+
+    const socket = window.socket
+    socket.on("change-button-status", (data) => {
+        const { message, userID } = data;
+        // Locate the buttons
+      console.log("in socket")
+      let parentCard = document.querySelector('card-body');
+      document.querySelectorAll('.user-relationship-btn').forEach(button => { parentCard = button.closest('.card-body'); button.remove() })
+    
+        // Accept/Reject -> Friends
+        if(message == 'Friends'){
+            const element = document.getElementById("span-friend-request-message");
+            if (element) {
+                element.style.display = 'none';
+            }
+            const friendsButton = document.createElement('button');
+            friendsButton.className = 'btn btn-secondary btn-sm user-relationship-btn friends-friend-request-btn';
+            friendsButton.innerText = 'Friends';
+            parentCard.appendChild(friendsButton);
+        }
+
+        // add friend -> friend request sent
+        if(message == 'Friend request sent'){
+            const requestSentButton = document.createElement('button');
+            requestSentButton.className = 'btn btn-secondary btn-sm user-relationship-btn friends-friend-request-btn';
+            requestSentButton.innerText = 'Friend request sent';
+            parentCard.appendChild(requestSentButton);
+        }
+
+        // Reject -> Add friend
+        if(message == "Add Friend"){
+            const element = document.getElementById("span-friend-request-message");
+            if (element) {
+                element.style.display = 'none';
+            }
+            const addButton = document.createElement('button');
+            addButton.className = 'btn btn-info btn-sm add-friend-btn user-relationship-btn';
+            addButton.innerText = 'Friend request sent';
+            addButton.setAttribute('data-id', userID); 
+            parentCard.appendChild(addButton);
+        }
+
+        // Request sent -> Accept/Reject
+        if(message == "Accept/Reject"){
+            const spanEl = document.createElement('span')
+            spanEl.id = "span-friend-request-message"
+            spanEl.innerHTML = 'Friend request has been received'
+            parentCard.appendChild(spanEl);
+            const acceptButton = document.createElement('button');
+            acceptButton.className = 'btn btn-success btn-sm accept-friend-request-btn user-relationship-btn';
+            acceptButton.innerText = 'Accept';
+            acceptButton.setAttribute('data-id', userID); 
+            parentCard.appendChild(acceptButton);
+            const rejectButton = document.createElement('button');
+            rejectButton.className = 'btn btn-danger btn-sm reject-friend-request-btn user-relationship-btn';
+            rejectButton.innerText = 'Reject';
+            rejectButton.setAttribute('data-id', userID);
+            parentCard.appendChild(rejectButton);
+        }
+        
+       
+      
+      
+    })
+
+    
   </script>
 
 </body>
