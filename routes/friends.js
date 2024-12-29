@@ -171,7 +171,7 @@ router.route('/add').post(async (req, res) => {
             
             const io = req.app.get('io');
             io.to(socketId).emit('friend-request-accepted', {
-              message: `${loggedUser.name} accepted your a friend request`,
+              message: `${loggedUser.name} accepted your friend request`,
               notificationID: notification._id
             });
 
@@ -181,6 +181,61 @@ router.route('/add').post(async (req, res) => {
 
             io.to(loggedUserSocketId).emit('change-button-status', {
                 message: `Friends`,
+              });
+          }
+    }
+    catch{
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+    
+  })
+
+  router.route('/reject').post(async (req, res) => {
+    console.log("in route reject")
+    const { friendId } = req.body;
+    console.log(friendId)
+    if (!friendId) {
+      return res.status(400).json({ message: 'Friend ID is required.' });
+    }
+
+    const loggedInUserID = req.cookies?.user_id;
+    console.log(loggedInUserID)
+    try{
+        const rejectedFriend = await User.findById(friendId);
+        const loggedUser = await User.findById(loggedInUserID);
+        console.log("taken users")
+        loggedUser.pendingRequests.pull({ _id: friendId })
+        
+        await loggedUser.save()
+        await rejectedFriend.save()
+
+        const notification = new Notification({
+            sender: loggedInUserID,
+            recepient: friendId,
+            message: `${loggedUser.name} rejected your friend request`,
+          });
+          await notification.save();
+
+          const socketId = await redisClient.get(`socketID:${friendId}`);
+          const loggedUserSocketId = await redisClient.get(`socketID:${loggedInUserID}`);
+          console.log(socketId)
+          if (socketId) {
+            
+            const io = req.app.get('io');
+            io.to(socketId).emit('friend-request-accepted', {
+              message: `${loggedUser.name} rejected your friend request`,
+              notificationID: notification._id
+            });
+
+            io.to(socketId).emit('change-button-status', {
+                message: `Add friend`,
+                userID: loggedInUserID
+              });
+
+            io.to(loggedUserSocketId).emit('change-button-status', {
+                message: `Add friend`,
+                userID: friendId
               });
           }
     }

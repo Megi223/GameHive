@@ -91,6 +91,26 @@
         }
         }
     });
+
+    document.body.addEventListener('click', async function (e) {
+        if (e.target.classList.contains('reject-friend-request-btn')) {
+            const friendId = e.target.getAttribute('data-id');
+            console.log("Friend ID upon reject is " + friendId)
+        const response = await fetch('/friends/reject', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ friendId }),
+        });
+
+        const data = await response.json();
+        
+        if (data.message === 'Friend request rejected successfully.') {
+          //e.target.innerHtml = 'Ad'
+        }
+        }
+    });
    
 
     
@@ -124,14 +144,14 @@
         }
 
         // Reject -> Add friend
-        if(message == "Add Friend"){
+        if(message == "Add friend"){
             const element = document.getElementById("span-friend-request-message");
             if (element) {
                 element.style.display = 'none';
             }
             const addButton = document.createElement('button');
             addButton.className = 'btn btn-info btn-sm add-friend-btn user-relationship-btn';
-            addButton.innerText = 'Friend request sent';
+            addButton.innerText = 'Add friend';
             addButton.setAttribute('data-id', userID); 
             parentCard.appendChild(addButton);
         }
