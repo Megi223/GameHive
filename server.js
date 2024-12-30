@@ -6,6 +6,7 @@ const authRouter = require('./routes/auth');
 const friendsRouter = require('./routes/friends');
 const usersRouter = require('./routes/users');
 const notificationsRouter = require('./routes/notifications');
+const gamesRouter = require('./routes/games');
 const cloudinary = require('cloudinary').v2;
 const cloudinaryConfig = require('./config/cloudinaryConfig');
 const dbConfig = require('./config/dbConfig');
@@ -18,7 +19,9 @@ const io = require('socket.io')(8080, {
   cors: {
     origin: ['http://localhost:3000', 'https://admin.socket.io'],
     credentials: true, 
-  }
+  },
+  pingInterval: 30000, // Ping every 30 seconds
+  pingTimeout: 120000, // Wait 120 seconds for pong
 })
 const { instrument } = require('@socket.io/admin-ui')
 
@@ -45,6 +48,32 @@ io.on('connection', async (socket) => {
   socket.on('disconnect', async (reason) => {
     await redisClient.del(`socketID:${id}`);
     console.log('Disconnected:', socket.id, 'Reason:', reason);
+  });
+
+  socket.on('live-restored', async (data) => {
+    console.log("beginning restore " + Date.now())
+    const user = await User.findById(id);
+
+    if (user.lives < 5) {
+      console.log("pre user save restore " + Date.now())
+      user.lives += 1;
+
+      if (user.lives < 5) {
+        user.nextLifeRestore = new Date(Date.now() + 60 * 1000); 
+      } else {
+        
+        user.nextLifeRestore = null; // No timer needed
+      }
+
+      await user.save();
+      console.log("post user save restore " + Date.now())
+      const loggedInUserSocketId = await redisClient.get(`socketID:${id}`);
+      console.log("restore lives-decrease event to be emitted with params: " + user.lives + " " + user.nextLifeRestore + Date.now())
+        io.to(loggedInUserSocketId).emit('lives-decrease', {
+        livesLeft: user.lives,
+        restoreTime: user.nextLifeRestore,
+      });
+    }
   });
 })
 
@@ -77,6 +106,7 @@ app.use('/auth', authRouter);
 app.use('/friends', friendsRouter);
 app.use('/users', usersRouter);
 app.use('/notifications', notificationsRouter);
+app.use('/games', gamesRouter);
 
 // Start the server
 app.listen(3000, () => {

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lives</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .heart {
+      font-size: 2rem;
+      margin: 0 5px;
+    }
+    .heart-full {
+      color: red;
+    }
+    .heart-empty {
+      color: lightgray;
+    }
+  </style>
+</head>
+<body>
+    <%- include('./partials/navbar.ejs') %>
+  <div class="container mt-5 text-center">
+    <h1>Lives</h1>
+    <div id="hearts-container" class="mb-4">
+      <!-- Hearts will be rendered here dynamically -->
+    </div>
+    <div id="timer-container">
+      <p id="timer-message">Next life in: <span id="timer">--:--</span></p>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    // Initialize socket connection
+    const socket = window.socket;
+    const userID = `<%= userID %>`;
+    // Lives and restore time passed from the server
+    let initialLives = `<%= lives %>`; // Number of current lives
+    const maxLives = 5; // Total possible lives
+    const restoreTime = new Date('<%= nextLifeRecoveryTime %>'); // Next restore time
+
+    const heartsContainer = document.getElementById('hearts-container');
+    const timerContainer = document.getElementById('timer-container');
+    const timerElement = document.getElementById('timer');
+    
+    // Function to render hearts based on lives
+    function renderHearts(lives) {
+      heartsContainer.innerHTML = ''; // Clear current hearts
+
+      for (let i = 0; i < maxLives; i++) {
+        const heart = document.createElement('span');
+        heart.className = 'heart ' + (i < lives ? 'heart-full' : 'heart-empty');
+        heart.innerHTML = '&#9829;'; // Unicode for heart
+        heartsContainer.appendChild(heart);
+      }
+    }
+
+    // Render initial hearts
+    renderHearts(initialLives);
+
+    // Function to update timer
+    // Function to update timer
+function updateTimer() {
+  const now = new Date();
+  let timeLeft = restoreTime - now;
+
+  //console.log("Timer update invoked");
+  //console.log("Time left:", timeLeft);
+
+  if (timeLeft <= 0) {
+    timeLeft = 0;
+
+    // Emit live-restored event to the server
+    console.log("Emitting live-restored event");
+    socket.emit('live-restored', { userID });
+
+    // Hide timer and stop the interval
+    timerContainer.style.display = 'none';
+    clearInterval(timerInterval);
+    return;
+  }
+
+  const minutes = Math.floor(timeLeft / (1000 * 60));
+  const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+  timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Timer initialization logic
+function timerlogic() {
+  if (initialLives < maxLives && restoreTime > new Date()) {
+    console.log("Starting timer logic for restoring lives");
+    timerContainer.style.display = 'block';
+
+    // update the timer display
+    updateTimer();
+
+    // set up the interval for subsequent updates
+    timerInterval = setInterval(updateTimer, 1000);
+  } else {
+    console.log("Lives are full or no restore time. Hiding timer.");
+    timerContainer.style.display = 'none';
+  }
+} // Initialize the timer on page load
+timerlogic()
+    // Listen for "lives-decrease" event from the server
+    socket.on('lives-decrease', (data) => {
+      console.log("Received lives-decrease event:", data);
+        console.log(Date.now())
+      renderHearts(data.livesLeft); // Update hearts display
+      console.log("Updated hearts based on lives:", data.livesLeft);
+        if(data.livesLeft == 4){
+            if (data.livesLeft < maxLives) {
+            restoreTime.setTime(new Date(data.restoreTime).getTime()); // Update restore time
+            console.log("New restore time:", restoreTime);
+                initialLives = data.livesLeft
+            timerContainer.style.display = 'block';
+            //clearInterval(timerInterval); 
+            timerlogic(); // Start the timer
+          } else {
+            console.log("Lives are full. Hiding timer.");
+            timerContainer.style.display = 'none';
+            clearInterval(timerInterval); // Stop the timer
+          }
+        }
+      
+    });
+  </script>
+</body>
+</html>

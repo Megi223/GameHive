@@ -18,14 +18,14 @@ const userSchema = new mongoose.Schema({
         }
     },
     lives: { type: Number, default: 5, max: 5 },
-    nextLifeRestore: { type: Date },
+    nextLifeRestore: { type: Date, default: null },
     points: { type: Number, default: 0 },
-    lastSpinDate: { type: Date },
+    lastSpinDate: { type: Date, default: Date.now },
     level: { type: Number, default: 1},
     gamesPlayed: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'GameSession', // Reference to game sessions
+          ref: 'GameSession', 
         },
     ],
     createdAt: { type: Date, default: Date.now, immutable:true },
