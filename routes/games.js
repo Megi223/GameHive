@@ -9,13 +9,22 @@ router.route("/all").get(async (req, res) =>{
     const userId = req.cookies.user_id;
 
     try {
-      const user = await User.findById(userId);
-        console.log(user)
+      //const user = await User.findById(userId);
+        //console.log(user)
         games = await Game.find()
+       const user = await User.findById(userId)
+        .populate({
+          path: 'friends',
+          options: { limit: 10 }, // Limit the populated friends to 10
+          select: '_id name profilePicture', // Select specific fields from the friend documents
+        })
+        .exec();
+        console.log(console.log(Array.isArray(user.friends)));
       res.render('allGames', {
         lives: user.lives,
         nextLifeRecoveryTime: user.nextLifeRestore,
-        games: games
+        games: games, 
+        friends: user.friends
       });
     } catch (error) {
       console.error(error);
@@ -54,6 +63,10 @@ router.route("/lose").get(async (req, res) =>{
       res.status(500).send('Internal Server Error');
     }
 
+})
+
+router.route("/play").post(async (req,res) => {
+    res.status(200).send('/play endpoint');
 })
 
 

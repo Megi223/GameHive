@@ -31,6 +31,7 @@
     </div>
 
     <h1 class="text-center mb-4">Games</h1>
+    
     <div class="row">
       <% games.forEach(game => { %>
         <div class="col-md-4 mb-4">
@@ -53,12 +54,52 @@
                 <i class="bi bi-people-fill"></i>
               </p>
               <div class="mt-auto">
-                <a href="/games/play/<%= game.id %>" class="btn btn-primary w-100">Play</a>
+                <button class="btn btn-primary w-100 open-game-modal" data-game-id="<%= game._id %>" data-max-players="<%= game.maxPlayers %>" data-game-name="<%= game.name.replace(/\s/g,'') %>">
+                    Play
+                  </button>
               </div>
             </div>
           </div>
         </div>
       <% }) %>
+    </div>
+  </div>
+
+  <!-- Modal Dialog -->
+  <div class="modal fade" id="gameModal" tabindex="-1" aria-labelledby="gameModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="container mt-3">
+            <div id="alert-banner" class="alert d-none position-relative p-3" role="alert">
+              <span id="alert-message"></span>
+              <div
+                id="alert-progress"
+                class="progress-bar position-absolute bottom-0 start-0 end-0"
+                style="height: 4px; background-color: #dc3545; transition: width 0.5s linear;"
+              ></div>
+            </div>
+          </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="gameModalLabel">Invite Others to Play</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" id="friend-search" placeholder="Search friends...">
+            <button class="btn btn-outline-secondary" id="search-btn">Search</button>
+          </div>
+          <ul class="list-group" id="friend-list">
+            <!-- Friends will be dynamically added here -->
+          </ul>
+        </div>
+        <div class="modal-footer">
+            <form action="/games/play" method="POST" class="d-inline">
+                <input id="formGameId" type="hidden" name="gameId" value="">
+                <input id="formGameName" type="hidden" name="gameName" value="">
+                <button type="submit" id="play-btn" class="btn btn-success">Play</button>
+            </form>
+        </div>
+      </div>
     </div>
   </div>
   </div>
@@ -160,6 +201,132 @@ timerlogic()
           }
         }
       
+    });
+  </script>
+
+  <!--Script for handling the modal dialog with friends-->
+  <script>
+    function showAlert(message, type, duration = 3000) {
+        const banner = document.getElementById('alert-banner');
+        const messageSpan = document.getElementById('alert-message');
+        const progressBar = document.getElementById('alert-progress');
+
+        banner.className = `alert alert-${type} position-relative`;
+        messageSpan.textContent = message;
+        banner.classList.remove('d-none');
+
+        progressBar.style.transition = `width ${duration}ms linear`;
+        progressBar.style.width = '100%';
+
+        setTimeout(() => {
+          progressBar.style.width = '0%';
+        }, 10);
+
+        setTimeout(() => {
+          banner.classList.add('d-none');
+          progressBar.style.width = '100%'; 
+        }, duration);
+    }
+    const friends = JSON.parse(`<%- JSON.stringify(friends) %>`); // Simulated friend list; replace with API response
+    let selectedFriends = new Set();
+    let maxPlayers = 0;
+
+    document.addEventListener('click', async (event) => {
+      if (event.target.classList.contains('open-game-modal')) {
+        const gameId = event.target.dataset.gameId;
+        const gameName = event.target.dataset.gameName;
+        maxPlayers = parseInt(event.target.dataset.maxPlayers, 10);
+
+        selectedFriends.clear();
+        updateFriendList();
+
+        const gameModal = new bootstrap.Modal(document.getElementById('gameModal'));
+        document.getElementById('formGameId').value = gameId;
+        document.getElementById('formGameName').value = gameName;
+        document.getElementById('play-btn').dataset.gameId = gameId;
+        document.getElementById('play-btn').dataset.gameName = gameName;
+        gameModal.show();
+      }
+
+      if (event.target.classList.contains('add-friend-btn')) {
+        const friendId = event.target.dataset.friendId;
+        if (selectedFriends.size < maxPlayers - 1) {
+          selectedFriends.add(friendId);
+          event.target.classList.replace('btn-success', 'btn-danger');
+          event.target.textContent = '-';
+          event.target.classList.replace('add-friend-btn', 'remove-friend-btn');
+        } else {
+          showAlert('Maximum players reached.', "danger");
+        }
+      }
+
+      else if (event.target.classList.contains('remove-friend-btn')) {
+        const friendId = event.target.dataset.friendId;
+        selectedFriends.delete(friendId);
+        event.target.classList.replace('btn-danger', 'btn-success');
+        event.target.textContent = '+';
+        event.target.classList.replace('remove-friend-btn', 'add-friend-btn');
+      }
+
+      /*if (event.target.id === 'play-btn') {
+        const gameId = event.target.dataset.gameId;
+        const gameName = event.target.dataset.gameName;
+        const response = await fetch(`/games/play/${gameName}/${gameId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            gameId,
+            selectedFriends: Array.from(selectedFriends),
+          }),
+        });
+
+        /*if (response.ok) {
+          alert('Game started!');
+          location.reload();
+        } else {
+          alert('Error starting the game.');
+        }
+      }*/
+    });
+
+    function updateFriendList() {
+      const friendList = document.getElementById('friend-list');
+      friendList.innerHTML = friends
+        .map(friend => `
+          <li class="list-group-item justify-content-between align-items-center friend-list-item">
+            <span>${friend.name}</span>
+            <button class="btn btn-success btn-sm add-friend-btn" data-friend-id="${friend._id}">+</button>
+          </li>
+        `)
+        .join('');
+    }
+
+    document.getElementById('friend-search').addEventListener('input',async (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const response = await fetch(`/friends/search?searchTerm=${encodeURIComponent(searchTerm)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error fetching friends');
+    }
+
+    const filteredFriends = await response.json();
+
+      const friendList = document.getElementById('friend-list');
+      friendList.innerHTML = filteredFriends
+        .map(friend => `
+          <li class="list-group-item friend-list-item">
+            <span>${friend.name}</span>
+            <button class="btn btn-success btn-sm add-friend-btn" data-friend-id="${friend.id}">+</button>
+          </li>
+        `)
+        .join('');
     });
   </script>
 </body>

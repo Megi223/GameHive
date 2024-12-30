@@ -6,7 +6,7 @@ const { redisConnect, redisClient } = require('../redisConnection');
 
 router.route('/list').get(async (req, res) => {
     try {
-      const user = await User.findById(req.user._id).populate('friends', 'name profilePicture');
+      const user = await User.findById(req.user._id).populate('friends', '_id name profilePicture');
       res.render('list', { friends: user.friends }); 
     } catch (error) {
       console.error(error);

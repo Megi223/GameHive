@@ -30,6 +30,7 @@ const authenticateToken = (req, res, next) => {
             
             const data = await response.json();
             const newAccessToken = data.accessToken; 
+            console.log("New access token " + newAccessToken)
             jwt.verify(newAccessToken, ACCESS_TOKEN_SECRET, async (err,user) => {
               req.user = user;
               res.cookie('access_token', newAccessToken, { httpOnly: true, secure: true, sameSite: 'strict' });

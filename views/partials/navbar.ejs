@@ -17,16 +17,17 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav navbar-center">
-            <li class="nav-item">
-              <a class="nav-link text-white" href="/friends/list">My Friends</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="/games/all">Games</a>
-            </li>
-        </ul>
-        <ul class="navbar-nav ms-auto align-items-center">
-          <% if (isAuthenticated) { %>
+        
+        <% if (isAuthenticated) { %>
+            <ul class="navbar-nav navbar-center">
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/friends/list">My Friends</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link text-white" href="/games/all">Games</a>
+                  </li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-center">
             <li class="nav-item">
                 <a class="nav-link text-white position-relative" href="/notifications/list">
                   <i class="bi bi-bell"></i>
@@ -43,15 +44,17 @@
                 <button type="submit" class="btn btn-link nav-link text-white p-0" style="text-decoration: none;">Logout</button>
               </form>
             </li>
+        </ul>
           <% } else { %>
+            <ul class="navbar-nav ms-auto align-items-center">
             <li class="nav-item">
               <a class="nav-link text-white" href="/auth/login">Login</a>
             </li>
             <li class="nav-item">
               <a class="nav-link text-white" href="/auth/register">Register</a>
             </li>
-          <% } %>
         </ul>
+          <% } %>
       </div>
     </div>
   </nav>
