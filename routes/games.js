@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../data/User')
+const Game = require('../data/Game')
 const Notification = require('../data/Notification')
 const { redisConnect, redisClient } = require('../redisConnection');
 
@@ -10,9 +11,11 @@ router.route("/all").get(async (req, res) =>{
     try {
       const user = await User.findById(userId);
         console.log(user)
+        games = await Game.find()
       res.render('allGames', {
         lives: user.lives,
         nextLifeRecoveryTime: user.nextLifeRestore,
+        games: games
       });
     } catch (error) {
       console.error(error);
