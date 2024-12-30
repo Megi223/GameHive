@@ -44,7 +44,7 @@ router.route('/register').get((req,res)=>{
         const user = new User({ email, password, name, profilePicture });
         await user.save();
 
-        res.status(201).json({ message: 'User registered successfully' });
+        res.redirect("/auth/login");
     }
     catch(err){
         console.error(err);
