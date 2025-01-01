@@ -7,6 +7,7 @@ const friendsRouter = require('./routes/friends');
 const usersRouter = require('./routes/users');
 const notificationsRouter = require('./routes/notifications');
 const gamesRouter = require('./routes/games');
+const tictactoe = require('./routes/tictactoe');
 const cloudinary = require('cloudinary').v2;
 const cloudinaryConfig = require('./config/cloudinaryConfig');
 const dbConfig = require('./config/dbConfig');
@@ -107,6 +108,7 @@ app.use('/friends', friendsRouter);
 app.use('/users', usersRouter);
 app.use('/notifications', notificationsRouter);
 app.use('/games', gamesRouter);
+app.use('/TicTacToe', tictactoe)
 
 // Start the server
 app.listen(3000, () => {

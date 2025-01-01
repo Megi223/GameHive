@@ -93,9 +93,10 @@
           </ul>
         </div>
         <div class="modal-footer">
-            <form action="/games/play" method="POST" class="d-inline">
+            <form id="play-form" action="/games/start" method="POST" class="d-inline">
                 <input id="formGameId" type="hidden" name="gameId" value="">
                 <input id="formGameName" type="hidden" name="gameName" value="">
+                <input type="hidden" id="players" name="players" value="">
                 <button type="submit" id="play-btn" class="btn btn-success">Play</button>
             </form>
         </div>
@@ -268,27 +269,22 @@ timerlogic()
         event.target.classList.replace('remove-friend-btn', 'add-friend-btn');
       }
 
-      /*if (event.target.id === 'play-btn') {
-        const gameId = event.target.dataset.gameId;
-        const gameName = event.target.dataset.gameName;
-        const response = await fetch(`/games/play/${gameName}/${gameId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            gameId,
-            selectedFriends: Array.from(selectedFriends),
-          }),
-        });
+      else if (event.target.id === 'play-btn') {
+        
+    event.preventDefault(); // Prevent default form submission for dynamic modification
 
-        /*if (response.ok) {
-          alert('Game started!');
-          location.reload();
-        } else {
-          alert('Error starting the game.');
-        }
-      }*/
+    // Set the form inputs dynamically
+    const gameId = document.getElementById('formGameId').value 
+    const gameName = document.getElementById('formGameName').value
+        const form = document.getElementById('play-form')
+        document.getElementById('players').value = JSON.stringify(Array.from(selectedFriends));
+    // Set the form's action dynamically
+    //form.action = `/${gameName}/play/${gameId}`; // Adjust URL as needed
+
+    // Submit the form after setting dynamic values
+    form.submit();
+
+      }
     });
 
     function updateFriendList() {

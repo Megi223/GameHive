@@ -98,6 +98,12 @@
       document.getElementById("notification-count").innerHTML = parseInt(value) - 1
 
     });
+
+    socket.on("invite-game-request", () => {
+      let value = document.getElementById("notification-count").innerHTML
+      document.getElementById("notification-count").innerHTML = parseInt(value) + 1
+
+    });
     
   </script>
   

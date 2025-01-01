@@ -65,9 +65,39 @@ router.route("/lose").get(async (req, res) =>{
 
 })
 
-router.route("/play").post(async (req,res) => {
-    res.status(200).send('/play endpoint');
-})
+router.route('/start').post(async (req,res) => {
+    const {gameId, gameName, players} = req.body
+    console.log(gameName)
+    console.log(gameId)
+    playersParsed = JSON.parse(players)
+    const currentUserId = req.cookies.user_id;
+    const user = await User.findById(currentUserId)
+
+    const io = req.app.get('io');
+    playersParsed.forEach(async (player) => {
+        const playerSocketId = await redisClient.get(`socketID:${player}`);
+         const notification = new Notification({
+                    sender: currentUserId,
+                    recepient: player,
+                    message: `You have been invited to play Tic Tac Toe with ${user.name}. Join the game <a href="http://localhost:3000/tictactoe/play/${gameId}">here</a>`,
+                  });
+                  await notification.save();
+        io.to(playerSocketId).emit('invite-game-request', {
+            message: `You have been invited to play Tic Tac Toe with ${user.name}. Join the game <a href="http://localhost:3000/tictactoe/play/${gameId}">here</a>`,
+          });
+        /*io.of("/").adapter.on("join-room", (room, playerSocketId) => {
+            console.log(`socket ${playerSocketId} has joined room ${room}`);
+          });*/
+    });
+    const rooms = io.of("/").adapter.rooms;
+    const sids = io.of("/").adapter.sids;
+    console.log(rooms)
+    console.log(sids)
+    res.redirect(`/${gameName}/play/${gameId}`)
+   
+}) 
+
+
 
 
 
