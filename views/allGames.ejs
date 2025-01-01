@@ -319,7 +319,7 @@ timerlogic()
         .map(friend => `
           <li class="list-group-item friend-list-item">
             <span>${friend.name}</span>
-            <button class="btn btn-success btn-sm add-friend-btn" data-friend-id="${friend.id}">+</button>
+            <button class="btn btn-success btn-sm add-friend-btn" data-friend-id="${friend._id}">+</button>
           </li>
         `)
         .join('');
