@@ -36,6 +36,12 @@ const authenticateToken = (req, res, next) => {
               res.cookie('access_token', newAccessToken, { httpOnly: true, secure: true, sameSite: 'strict' });
             }) 
           }
+          else{
+            res.clearCookie("access_token");
+            res.clearCookie("refresh_token");
+            res.clearCookie("user_id");
+            res.redirect('/auth/login')
+          }
           
         }
         else{
