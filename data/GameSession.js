@@ -9,7 +9,7 @@ const gameSessionSchema = new Schema({
   },
   players: [
     {
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     },
   ],
   score: { type: Number, default: 0 },  

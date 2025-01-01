@@ -76,6 +76,23 @@ io.on('connection', async (socket) => {
       });
     }
   });
+
+  socket.on('user-joined', async (room, userID) => {
+    socket.join(room)
+    await redisClient.set(`room:${userID}`, room, { EX: 24 * 60 * 60 });
+    let peopleIn = 1;
+    peopleIn = await redisClient.get(room)
+    console.log(peopleIn)
+    if(peopleIn != null){
+      peopleIn = parseInt(peopleIn) + 1
+     await redisClient.set(`${room}`, peopleIn, { EX: 24 * 60 * 60 });
+    }
+    else{
+      await redisClient.set(`${room}`, 1, { EX: 24 * 60 * 60 });
+    }
+    console.log("to emit user count")
+    io.to(room).emit('user-count', { userCount: peopleIn })
+  })
 })
 
 instrument(io, {auth: false})

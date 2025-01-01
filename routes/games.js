@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const User = require('../data/User')
 const Game = require('../data/Game')
+const GameSession = require('../data/GameSession')
 const Notification = require('../data/Notification')
 const { redisConnect, redisClient } = require('../redisConnection');
 
@@ -72,18 +73,22 @@ router.route('/start').post(async (req,res) => {
     playersParsed = JSON.parse(players)
     const currentUserId = req.cookies.user_id;
     const user = await User.findById(currentUserId)
-
+    const gameSession = new GameSession({gameId:gameId});
+    await gameSession.save();
     const io = req.app.get('io');
+    io.emit('room-created', gameSession._id)
     playersParsed.forEach(async (player) => {
         const playerSocketId = await redisClient.get(`socketID:${player}`);
+        console.log("Player " + player)
+        console.log("player socket: " + playerSocketId)
          const notification = new Notification({
                     sender: currentUserId,
                     recepient: player,
-                    message: `You have been invited to play Tic Tac Toe with ${user.name}. Join the game <a href="http://localhost:3000/tictactoe/play/${gameId}">here</a>`,
+                    message: `You have been invited to play Tic Tac Toe with ${user.name}. Join the game <a href="http://localhost:3000/tictactoe/play/${gameSession._id}">here</a>`,
                   });
                   await notification.save();
         io.to(playerSocketId).emit('invite-game-request', {
-            message: `You have been invited to play Tic Tac Toe with ${user.name}. Join the game <a href="http://localhost:3000/tictactoe/play/${gameId}">here</a>`,
+            message: `You have been invited to play Tic Tac Toe with ${user.name}. Join the game <a href="http://localhost:3000/tictactoe/play/${gameSession._id}">here</a>`,
           });
         /*io.of("/").adapter.on("join-room", (room, playerSocketId) => {
             console.log(`socket ${playerSocketId} has joined room ${room}`);
@@ -93,7 +98,7 @@ router.route('/start').post(async (req,res) => {
     const sids = io.of("/").adapter.sids;
     console.log(rooms)
     console.log(sids)
-    res.redirect(`/${gameName}/play/${gameId}`)
+    res.redirect(`/${gameName}/play/${gameSession._id}`)
    
 }) 
 
