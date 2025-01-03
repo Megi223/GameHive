@@ -51,6 +51,7 @@
   <div id="board" class="board">
 
   </div>
+  <button id="leave-game-btn" class="btn btn-danger">Leave Game</button>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
 
@@ -107,6 +108,16 @@
         cell.textContent = board[index].value;
       });
       statusElement.textContent = winner === 'Draw' ? 'It\'s a Draw!' : `Player ${winner} wins!`;
+    });
+
+    document.getElementById('leave-game-btn').addEventListener('click', () => {
+      const boardElement = document.getElementById('board');
+      const boardArr = Array.from(boardElement.children).map(cell => ({
+                    index: cell.dataset.index, 
+                    value: cell.textContent.trim() 
+                  }));
+      socket.emit('leave-game', {board: boardArr, room: roomName}); 
+      window.location.href = '/games/all'; 
     });
   </script>
 </body>

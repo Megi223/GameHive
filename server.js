@@ -139,6 +139,29 @@ io.on('connection', async (socket) => {
     }
   });
 
+  socket.on('leave-game', async ({board, room}) => {
+    const userID = socket.handshake.auth.userID;
+    socket.leave(room);
+    console.log(room)
+    const playerLeaving = await redisClient.get(`${userID};${room}`)
+    const winner = playerLeaving == 'X' ? 'O' : 'X'
+    await redisClient.del(`${userID};${room}`)
+    let peopleIn = 1;
+    peopleIn = await redisClient.get(room)
+    console.log(peopleIn)
+    let leftPeople = parseInt(peopleIn) - 1
+    console.log(leftPeople)
+    if(leftPeople == 1){
+      console.log('in game over')
+      io.to(room).emit('game-over', { board, winner });
+    }
+    else{
+      await redisClient.set(`${room}`, peopleIn)
+      io.to(room).emit('player-exit', { message: `${playerLeaving} has left the game.` });
+    }
+    
+  });
+
   function checkWinner(board) {
     console.log('in check winner')
     const winningCombinations = [
