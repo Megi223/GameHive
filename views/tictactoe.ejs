@@ -45,40 +45,69 @@
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
-    <!--<%- include('./partials/navbar.ejs') %>-->
+    <%- include('./partials/navbar.ejs') %>
   <h1>Tic Tac Toe</h1>
   <div id="status">Waiting for players...</div>
   <div id="board" class="board">
-    <!-- Game cells will be dynamically added -->
+
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    const socket = io('http://localhost:8080')
+
+    const socket = window.socket
     const statusElement = document.getElementById('status');
     const roomName = "<%= gameId %>"
     const userID = `<%= userID %>`;
+    let playerSymbol = null;
+    
     socket.emit('user-joined', roomName, userID)
     socket.on('user-count', (data)=>{
         console.log("user count received " + data.userCount)
         if(data.userCount == 2) {
             const boardElement = document.getElementById('board');
-            let playerSymbol = null;
-            // Create game board
             for (let i = 0; i < 9; i++) {
               const cell = document.createElement('div');
               cell.classList.add('cell');
               cell.dataset.index = i;
               boardElement.appendChild(cell);
-            
               cell.addEventListener('click', () => {
                 if (playerSymbol) {
-                  socket.emit('make-move', { index: i });
+                  const boardArr = Array.from(boardElement.children).map(cell => ({
+                    index: cell.dataset.index, 
+                    value: cell.textContent.trim() 
+                  }));
+                  socket.emit('make-move', { index: i, room: roomName, move: playerSymbol, board: boardArr });
                 }
               });
             }
         }
     })
-    
+  
+    socket.on('game-update', ({ board, move }) => {
+      console.log("in game update")
+      const boardElement = document.getElementById('board');
+      Array.from(boardElement.children).forEach((cell, index) => {
+        cell.textContent = board[index].value;
+      });
+      statusElement.textContent = move === playerSymbol
+        ? 'Your turn'
+        : `Waiting for Player ${move}`;
+    });
+
+    socket.on('player-symbol-assigned', ({symbol}) => {
+      console.log("player symbol is: " + symbol)
+      playerSymbol = symbol;
+      statusElement.textContent = `You are Player ${playerSymbol}`;
+    });
+
+    socket.on('game-over', ({ board, winner }) => {
+      console.log('in game over')
+      const boardElement = document.getElementById('board');
+      Array.from(boardElement.children).forEach((cell, index) => {
+        cell.textContent = board[index].value;
+      });
+      statusElement.textContent = winner === 'Draw' ? 'It\'s a Draw!' : `Player ${winner} wins!`;
+    });
   </script>
 </body>
 </html>

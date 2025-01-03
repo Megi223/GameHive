@@ -86,13 +86,80 @@ io.on('connection', async (socket) => {
     if(peopleIn != null){
       peopleIn = parseInt(peopleIn) + 1
      await redisClient.set(`${room}`, peopleIn, { EX: 24 * 60 * 60 });
+     io.to(socket.id).emit('player-symbol-assigned', { symbol: 'O' })
+     await redisClient.set(`${userID};${room}`, 'O', { EX: 24 * 60 * 60 });
     }
     else{
       await redisClient.set(`${room}`, 1, { EX: 24 * 60 * 60 });
+      io.to(socket.id).emit('player-symbol-assigned', { symbol: 'X' })
+      await redisClient.set(`${userID};${room}`, 'X', { EX: 24 * 60 * 60 });
     }
     console.log("to emit user count")
+    
+    
     io.to(room).emit('user-count', { userCount: peopleIn })
   })
+
+  socket.on('make-move', async ({index, room, move, board}) => {
+    /*console.log("Index is: " + index)
+    console.log(room)
+    console.log(move)
+    console.log(board)*/
+    //const { index, room } = data;
+    const userID = socket.handshake.auth.userID;
+    console.log(userID)
+    const roomID = await redisClient.get(`room:${userID}`);
+    //const expectedMove = await redisClient.get(`${userID};${room}`)
+    const expectedMove = (Object.values(board).filter(cell => cell.value === '').length) % 2 == 1 ? 'X' : 'O';
+    /*console.log("Expected move is: " + expectedMove)
+    console.log(board[index].value === '')
+    console.log(roomID === room)
+    console.log(expectedMove === move)*/
+    // Validate move 
+    if (board[index].value === '' && roomID === room && expectedMove === move) {
+      console.log("in board assignment")
+      board[index].value = move;
+      move = move === 'X' ? 'O' : 'X'; // Switch player
+      
+      // Check for a winner or draw
+      const winner = checkWinner(board);
+      console.log(winner)
+      if (winner) {
+        console.log('game over to be emitted with '+ winner)
+        io.to(room).emit('game-over', { board, winner });
+        
+      } else if (Object.values(board).every((cell) => cell.value !== '')) {
+        console.log('game over to be emitted with draw')
+        console.log(Object.values(board).every((cell) => console.log(cell)))
+        io.to(room).emit('game-over', { board, winner: 'Draw' });
+      } else {
+        console.log('game update to be emitted with '+ board + ' ' + move)
+        io.to(room).emit('game-update', { board, move });
+      }
+    }
+  });
+
+  function checkWinner(board) {
+    console.log('in check winner')
+    const winningCombinations = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    for (let combination of winningCombinations) {
+      const [a, b, c] = combination;
+      if (board[a].value && board[a].value === board[b].value && board[a].value === board[c].value) {
+        return board[a].value; // Return 'X' or 'O'
+      }
+    }
+    return null;
+  }
 })
 
 instrument(io, {auth: false})
@@ -131,7 +198,5 @@ app.use('/TicTacToe', tictactoe)
 app.listen(3000, () => {
   console.log('Server running on port 3000');
 });
-
-
 
 module.exports = { cloudinary };
