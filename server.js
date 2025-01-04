@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const User = require("./data/User");
+const GameSession = require("./data/GameSession");
 const authRouter = require('./routes/auth');
 const friendsRouter = require('./routes/friends');
 const usersRouter = require('./routes/users');
@@ -83,6 +84,12 @@ io.on('connection', async (socket) => {
     let peopleIn = 1;
     peopleIn = await redisClient.get(room)
     console.log(peopleIn)
+    //let gameSession = await GameSession.findOne({ gameId: room });
+    let gameSession = await GameSession.findById(room);
+    console.log('Game session ' + gameSession)
+    console.log('User id to be pushed' + userID)
+    gameSession.players.push({ userID }); 
+    await gameSession.save();
     if(peopleIn != null){
       peopleIn = parseInt(peopleIn) + 1
      await redisClient.set(`${room}`, peopleIn, { EX: 24 * 60 * 60 });
@@ -126,6 +133,8 @@ io.on('connection', async (socket) => {
       console.log(winner)
       if (winner) {
         console.log('game over to be emitted with '+ winner)
+        await modifyGameSession(room,'completed',userID)
+        
         io.to(room).emit('game-over', { board, winner });
         
       } else if (Object.values(board).every((cell) => cell.value !== '')) {
@@ -151,8 +160,11 @@ io.on('connection', async (socket) => {
     console.log(peopleIn)
     let leftPeople = parseInt(peopleIn) - 1
     console.log(leftPeople)
+    console.log(userID)
+    
     if(leftPeople == 1){
       console.log('in game over')
+      await modifyGameSession(room,'cancelled',userID)
       io.to(room).emit('game-over', { board, winner });
     }
     else{
@@ -182,6 +194,14 @@ io.on('connection', async (socket) => {
       }
     }
     return null;
+  }
+
+  async function modifyGameSession(room, status, winnerId){
+    let gameSession = await GameSession.findById(room);
+    gameSession.completedAt = Date.now()
+    gameSession.status = status
+    gameSession.winner = winnerId
+    await gameSession.save()
   }
 })
 

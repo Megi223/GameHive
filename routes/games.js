@@ -57,7 +57,7 @@ router.route("/lose").post(async (req, res) =>{
               livesLeft: user.lives,
               restoreTime: user.nextLifeRestore,
             });
-            
+            res.status(200).send('OK')
         }
     } catch (error) {
       console.error(error);

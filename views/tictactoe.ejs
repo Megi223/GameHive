@@ -146,7 +146,7 @@
         document.getElementById('winner-content').classList.remove('d-none');
         document.getElementById('loser-content').classList.add('d-none');
         modal.show();
-        // Trigger confetti
+        
         triggerConfetti();
       } else if (winner !== 'Draw') {
         document.getElementById('loser-content').classList.remove('d-none');
@@ -181,16 +181,31 @@
 
     });
 
-    document.getElementById('leave-game-btn').addEventListener('click', () => {
+    document.getElementById('leave-game-btn').addEventListener('click', async () => {
       const boardElement = document.getElementById('board');
       const boardArr = Array.from(boardElement.children).map(cell => ({
                     index: cell.dataset.index, 
                     value: cell.textContent.trim() 
                   }));
-      socket.emit('leave-game', {board: boardArr, room: roomName}); 
-      window.location.href = '/games/all'; 
-    });
+                  
+                  try {
+      const response = await fetch('/games/lose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userID }),
+      });
+      if (!response.ok) {
+        console.error('Failed to deduct life.');
+      }
+    } catch (err) {
+      console.error('Error deducting life:', err);
+    }             
+                  socket.emit('leave-game', {board: boardArr, room: roomName}); 
+                  window.location.href = '/games/all'; 
+                  
 
+    });
+    
     function triggerConfetti() {
     confetti({
       particleCount: 100,
