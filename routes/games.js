@@ -33,9 +33,9 @@ router.route("/all").get(async (req, res) =>{
     }
 })
 
-router.route("/lose").get(async (req, res) =>{
-    const userId = req.cookies.user_id;
-
+router.route("/lose").post(async (req, res) =>{
+    //const userId = req.cookies.user_id;
+    const {userId} = req.body
     try {
         console.log("beginning lose " + Date.now())
       const user = await User.findById(userId);

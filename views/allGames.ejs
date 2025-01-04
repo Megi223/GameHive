@@ -113,7 +113,7 @@
     const socket = window.socket;
     const userID = `<%= userID %>`;
     // Lives and restore time passed from the server
-    let initialLives = `<%= lives %>`; // Number of current lives
+    let initialLives = parseInt(`<%= lives %>`); // Number of current lives
     const maxLives = 5; // Total possible lives
     const restoreTime = new Date('<%= nextLifeRecoveryTime %>'); // Next restore time
 
@@ -228,7 +228,7 @@ timerlogic()
           progressBar.style.width = '100%'; 
         }, duration);
     }
-    const friends = JSON.parse(`<%- JSON.stringify(friends) %>`); // Simulated friend list; replace with API response
+    const friends = JSON.parse(`<%- JSON.stringify(friends) %>`); 
     let selectedFriends = new Set();
     let maxPlayers = 0;
 

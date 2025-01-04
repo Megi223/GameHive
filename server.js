@@ -62,7 +62,7 @@ io.on('connection', async (socket) => {
       if (user.lives < 5) {
         user.nextLifeRestore = new Date(Date.now() + 60 * 1000); 
       } else {
-        
+        console.log("in null set in life-restore")
         user.nextLifeRestore = null; // No timer needed
       }
 
