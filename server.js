@@ -83,12 +83,8 @@ io.on('connection', async (socket) => {
     await redisClient.set(`room:${userID}`, room, { EX: 24 * 60 * 60 });
     let peopleIn = 1;
     peopleIn = await redisClient.get(room)
-    console.log(peopleIn)
-    //let gameSession = await GameSession.findOne({ gameId: room });
     let gameSession = await GameSession.findById(room);
-    console.log('Game session ' + gameSession)
-    console.log('User id to be pushed' + userID)
-    gameSession.players.push({ userID }); 
+    gameSession.players.push({ userId: userID }); 
     await gameSession.save();
     if(peopleIn != null){
       peopleIn = parseInt(peopleIn) + 1

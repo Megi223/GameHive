@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../data/User')
-
+const GameSession = require('../data/GameSession')
 
 router.route('/my-profile').get(async (req, res) => {
     const id = req.cookies?.user_id;
@@ -40,8 +40,17 @@ router.route('/:id').get(async (req, res) => {
       if (!user) {
         return res.status(404).send('User not found');
       }
-  
-      res.render('profile', { user });
+      
+      const gamesPlayed = await GameSession.find({
+        players: { $elemMatch: { userId: loggedInUserID } },
+        players: { $elemMatch: { userId: id } },
+      })
+        .populate('players', 'name')
+        .populate('gameId', 'name') 
+        .populate('winner', 'name profilePicture')
+        .sort({ createdAt: -1 });
+        console.log(gamesPlayed)
+      res.render('profile', { user, gamesPlayed });
     } catch (error) {
       console.error(error);
       res.status(500).send('Internal Server Error');

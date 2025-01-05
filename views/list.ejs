@@ -51,11 +51,14 @@
               <span class="flex-grow-1"><%= friend.name %></span>
               <div>
                 <button
-                  class="btn btn-primary btn-sm me-2 play-btn"
+                  class="btn btn-danger btn-sm remove-btn"
                   data-id="<%= friend._id %>"
                 >
-                  Play
+                  Remove
                 </button>
+                <a href="/users/<%= friend._id %>" class="btn btn-secondary btn-sm">
+                  View Profile
+                </a>
                
               </div>
             </div>

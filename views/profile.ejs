@@ -49,6 +49,52 @@
           <% } %>
           
       </div>
+
+      <% if(gamesPlayed.length > 0){ %>
+      <!-- Section for games played -->
+    <div class="mt-5" style="margin: 5%;">
+      <% if(gamesPlayed.length == 1){ %>
+
+        <h3>You played <%= gamesPlayed.length %> game together</h3>
+        <% } else { %>
+          <h3>You played <%= gamesPlayed.length %> games together</h3>
+          <% } %>
+      <table class="table table-bordered mt-3">
+        <thead>
+          <tr>
+            <th>Game Name</th>
+            <th>Date Played</th>
+            <th>Status / Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% gamesPlayed.forEach(game => { %>
+            <tr>
+              <td><%= game.gameId.name %></td>
+              <td><%= new Date(game.createdAt).toLocaleString() %></td>
+              <td>
+                <% if (game.winner) { %>
+                  <div class="d-flex align-items-center">
+                    <img
+                      src="<%= game.winner.profilePicture %>"
+                      alt="<%= game.winner.name %>'s Profile Picture"
+                      class="rounded-circle me-2"
+                      style="width: 40px; height: 40px; object-fit: cover;"
+                    />
+                    <span><%= game.winner.name %> won the game!</span>
+                  </div>
+                <% } else { %>
+                  <span>Draw</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </div>
+
     </div>
   </div>
 
