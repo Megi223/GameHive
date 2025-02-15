@@ -42,8 +42,10 @@ router.route('/:id').get(async (req, res) => {
       }
       
       const gamesPlayed = await GameSession.find({
-        players: { $elemMatch: { userId: loggedInUserID } },
-        players: { $elemMatch: { userId: id } },
+        $and: [
+          { players: { $elemMatch: { userId: loggedInUserID } } },
+          { players: { $elemMatch: { userId: id } } }
+        ]
       })
         .populate('players', 'name')
         .populate('gameId', 'name') 

@@ -1,0 +1,11 @@
+#search-btn {
+    background-color: hsl(56, 49%, 12%);
+    border:none
+}
+
+.no-friends-message {
+    margin-top: 2%;
+    background-color: hsl(56, 97%, 76%);
+    border: none;
+    color: hsl(56, 49%, 12%)
+}

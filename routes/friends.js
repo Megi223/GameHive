@@ -22,7 +22,7 @@ router.route('/add').post(async (req, res) => {
     }
   
     try {
-        const userID = req.cookies?.user_id;
+      const userID = req.cookies?.user_id;
       const user = await User.findById(userID);
       const friend = await User.findById(friendId);
       console.log("==========USER========")
@@ -86,7 +86,7 @@ router.route('/add').post(async (req, res) => {
     }
   
     try {
-        const userID = req.cookies?.user_id;
+      const userID = req.cookies?.user_id;
       const user = await User.findById(userID);
   
       // Remove friend from the user's friend list
@@ -103,6 +103,17 @@ router.route('/add').post(async (req, res) => {
         friend.friends.splice(indexFriend, 1);
         await friend.save();
       } 
+
+      const friendSocketId = await redisClient.get(`socketID:${friendId}`);
+      if (friendSocketId) {
+            
+        const io = req.app.get('io');
+
+        io.to(friendSocketId).emit('change-button-status', {
+            message: `Add friend`,
+            userID: userID
+          });
+      }
 
       res.status(200).json({ message: 'Friend removed successfully.' });
     } catch (error) {

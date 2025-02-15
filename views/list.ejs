@@ -6,6 +6,7 @@
     <title>Friends List</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/friends-list.css">
   </head>
 <body>
   <%- include('./partials/navbar.ejs') %>
@@ -37,9 +38,14 @@
       </div>
     </div>
     <h1>Your Friends</h1>
+    <% if (friends.length === 0) { %>
+      <div class="alert alert-info no-friends-message">
+        You don't have any friends yet. Add some in order to play and have fun!
+      </div>
+    <% } else { %>
     <div class="row">
       <% friends.forEach(friend => { %>
-        <div class="col-12 mb-3">
+        <div class="col-12 mb-3 friends-list">
           <div class="card p-2">
             <div class="d-flex align-items-center">
               <img
@@ -66,6 +72,7 @@
         </div>
       <% }) %>
     </div>
+    <% } %>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -107,6 +114,13 @@
         showAlert(data.message, "danger");
         if (data.message === 'Friend removed successfully.') {
           e.target.closest('.card').remove();  
+          const friendsList = document.querySelector('.friends-list');
+          if (friendsList && friendsList.children.length === 0) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'alert alert-info no-friends-message';
+            messageDiv.textContent = "You don't have any friends yet. Add some in order to play and have fun!";
+            friendsList.parentNode.insertBefore(messageDiv, friendsList);
+          }
         }
       });
     });
