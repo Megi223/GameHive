@@ -6,10 +6,17 @@
   <title><%= title %></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <%- include('./partials/navbar.ejs') %>
-  <h1>Home page</h1>
+  <div class="hero">
+    <img src="https://res.cloudinary.com/dhsnrnzzt/image/upload/v1739625381/home-page-2_ikax1n.png" alt="GameHive Banner">
+    <div class="hero-text">
+      <h1>GameHive</h1>
+      <p>Where multiplayer magic meets virtual fun</p>
+    </div>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

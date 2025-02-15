@@ -1,0 +1,23 @@
+#notification-count {
+    font-size: 0.75rem;
+    padding: 0.4em 0.5em;
+    color: white;
+  }
+
+  .navbar-center {
+    margin-left: 38%;
+  }
+
+  .navbar-custom {
+    background-color: hsl(56, 97%, 76%);
+  }
+
+  .nav-link {
+    color:hsl(56, 49%, 12%);
+    font-weight: bold;
+  }
+
+  .navbar-brand {
+    color:hsl(56, 49%, 12%);
+    font-weight: bold; 
+  }
