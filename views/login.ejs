@@ -16,6 +16,11 @@
   <div class="container d-flex justify-content-center align-items-center vh-100">
     <div class="card login-card p-4 shadow">
       <h1 class="text-center mb-4">Login</h1>
+      <% if (error) { %>
+        <div class="alert alert-danger" role="alert">
+          <%= error %>
+        </div>
+      <% } %>
       <form action="/auth/login" method="POST">
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>

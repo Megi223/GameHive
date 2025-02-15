@@ -8,15 +8,19 @@ require('dotenv').config();
 
 router.route('/login')
     .get((req,res)=>{
-        res.render("login.ejs")
+      res.render("login", { error: null });
 })
     .post(async (req,res)=>{
       try {
         const {email, password} = req.body
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!user) {
+          return res.status(401).render("login", { error: "Invalid credentials" });
+        }
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!isMatch) {
+          return res.status(401).render("login", { error: "Invalid credentials" });
+        }
         const accessToken = generateAccessToken(user.toJSON())
         const refreshToken = generateRefreshToken(user.toJSON())
         await redisClient.set(`accessToken:${user.id}`, accessToken, { EX: 5 * 60 });
@@ -35,24 +39,42 @@ router.route('/login')
 
 })
 
-router.route('/register').get((req,res)=>{
-    res.render("register.ejs")
-}).post(async (req,res)=>{
+router.route('/register')
+  .get((req, res) => {
+    res.render("register", { error: null });
+  })
+  .post(async (req, res) => {
+    const { email, password, name, profilePicture } = req.body;
 
-    const {email,password,name, profilePicture} = req.body
+    if (!email || !password || !name || !profilePicture) {
+      return res
+        .status(400)
+        .render("register", { error: "All fields are required." });
+    }
+
+    if (password.length < 8) {
+      return res
+        .status(400)
+        .render("register", { error: "Password must be at least 8 characters long." });
+    }
+
     try {
-        const user = new User({ email, password, name, profilePicture });
-        await user.save();
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res
+          .status(400)
+          .render("register", { error: "A user with this email already exists." });
+      }
 
-        res.redirect("/auth/login");
+      const user = new User({ email, password, name, profilePicture });
+      await user.save();
+
+      res.redirect("/auth/login");
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal server error" });
     }
-    catch(err){
-        console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-})
-
-
+  });
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
