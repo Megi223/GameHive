@@ -7,6 +7,7 @@ const authenticateToken = (req, res, next) => {
     const token = req.cookies?.access_token; 
     console.log("in authentication middleware")
     if (!token) {
+      console.log("no access token")
       next()
       return;
     }
