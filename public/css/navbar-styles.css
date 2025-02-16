@@ -21,3 +21,44 @@
     color:hsl(56, 49%, 12%);
     font-weight: bold; 
   }
+
+  /* Make the navbar a light yellow (example) */
+.navbar-custom {
+    background-color: #fff9b2;
+  }
+  
+  /* Center the brand, items, etc., if needed (Bootstrap utility classes also help) */
+  .navbar-nav .nav-link {
+    color: #333;
+    font-weight: 500;
+  }
+  
+  /* The container that holds "Lives", hearts, and timer in the center */
+  .lives-center {
+    /* If you want extra spacing or custom styling, add it here. */
+  }
+  
+  /* Hearts styling (optional) */
+  .heart {
+    font-size: 1.5rem;
+    margin: 0 2px;
+  }
+  
+  .heart-full {
+    color: red;
+  }
+  
+  .heart-empty {
+    color: lightgray;
+  }
+  
+  /* Timer text styling (optional) */
+  #timer-message {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  
+  /* Notification badge adjustments */
+  #notification-count {
+    font-size: 0.75rem;
+  }

@@ -26,9 +26,15 @@ router.route('/login')
         await redisClient.set(`accessToken:${user.id}`, accessToken, { EX: 5 * 60 });
         await redisClient.set(`refreshToken:${user.id}`, refreshToken, { EX: 24 * 60 * 60 });
         
+        let lifeRestore = user.nextLifeRestore === null ? "" : user.nextLifeRestore.toISOString();
         res.cookie('access_token', accessToken, { httpOnly: true, secure: true, sameSite: 'strict' });
         res.cookie('refresh_token', refreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });
         res.cookie('user_id', user.id, { httpOnly: true, secure: true, sameSite: 'strict' });
+        //res.cookie('lives', user.lives, { httpOnly: true, secure: true, sameSite: 'strict' });
+        //res.cookie('nextLifeRestore', lifeRestore, { httpOnly: true, secure: true, sameSite: 'strict' });
+
+        await redisClient.set(`lives-${user.id}`, user.lives, { EX: 24 * 60 * 60 });
+        await redisClient.set(`lifeRestore-${user.id}`, lifeRestore, { EX: 24 * 60 * 60 });
         res.redirect("/users/my-profile")
       }
       catch(err){
@@ -118,6 +124,8 @@ router.route('/logout')
   res.clearCookie("access_token");
   res.clearCookie("refresh_token");
   res.clearCookie("user_id");
+  //res.clearCookie("lives");
+  //res.clearCookie("nextLifeRestore");
   await redisClient.del(`accessToken:${userID}`);
   await redisClient.del(`refreshToken:${userID}`);
   res.redirect("/")

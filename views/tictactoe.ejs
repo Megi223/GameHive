@@ -87,10 +87,10 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script>
 
-    const socket = window.socket
+    //const socket = window.socket
     const statusElement = document.getElementById('status');
     const roomName = "<%= gameId %>"
-    const userID = `<%= userID %>`;
+    //const userID = `<%= userID %>`;
     let playerSymbol = null;
     
     socket.emit('user-joined', roomName, userID)

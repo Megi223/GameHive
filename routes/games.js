@@ -53,6 +53,12 @@ router.route("/lose").post(async (req, res) =>{
             
             const io = req.app.get('io');
             console.log("lose lives-decrease event to be emitted with params: " + user.lives + " " + user.nextLifeRestore + " " + Date.now())
+            let lifeRestore = user.nextLifeRestore === null ? "" : user.nextLifeRestore.toISOString();
+            //res.cookie('lives', user.lives, { httpOnly: true, secure: true, sameSite: 'strict' });
+            //res.cookie('nextLifeRestore', lifeRestore, { httpOnly: true, secure: true, sameSite: 'strict' });
+            console.log(lifeRestore)
+            await redisClient.set(`lives-${userId}`, user.lives, { EX: 24 * 60 * 60 });
+            await redisClient.set(`lifeRestore-${userId}`, lifeRestore, { EX: 24 * 60 * 60 });
             io.to(loggedInUserSocketId).emit('lives-decrease', {
               livesLeft: user.lives,
               restoreTime: user.nextLifeRestore,

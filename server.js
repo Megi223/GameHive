@@ -14,6 +14,7 @@ const cloudinaryConfig = require('./config/cloudinaryConfig');
 const dbConfig = require('./config/dbConfig');
 const { redisConnect, redisClient } = require('./redisConnection');
 const { authenticateToken } = require('./middlewares/authenticationMiddleware');
+const { livesSetter } = require('./middlewares/livesMiddleware');
 const { globalMiddleware } = require('./middlewares/globalMiddleware');
 const { assignNotifications } = require('./middlewares/notificationMiddleware');
 const { initializeSocket } = require('./socketManager');
@@ -58,6 +59,7 @@ app.set('view engine', 'ejs');
 app.use(authenticateToken); 
 app.use(globalMiddleware); 
 app.use(assignNotifications);
+app.use(livesSetter);
 
 // Routes
 app.get('/', (req, res) => {

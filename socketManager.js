@@ -1,4 +1,6 @@
 const { redisConnect, redisClient } = require('./redisConnection');
+const User = require("./data/User");
+const GameSession = require("./data/GameSession");
 
 function initializeSocket(io) {
 // Configure sockets
@@ -32,7 +34,12 @@ io.on('connection', async (socket) => {
         }
   
         await user.save();
+        
         console.log("post user save restore " + Date.now())
+        let lifeRestore = user.nextLifeRestore === null ? "" : user.nextLifeRestore.toISOString();
+        console.log(lifeRestore)
+        await redisClient.set(`lives-${id}`, user.lives, { EX: 24 * 60 * 60 });
+        await redisClient.set(`lifeRestore-${id}`, lifeRestore, { EX: 24 * 60 * 60 });
         const loggedInUserSocketId = await redisClient.get(`socketID:${id}`);
         console.log("restore lives-decrease event to be emitted with params: " + user.lives + " " + user.nextLifeRestore + Date.now())
           io.to(loggedInUserSocketId).emit('lives-decrease', {
